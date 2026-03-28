@@ -1,0 +1,74 @@
+name: CodePulse Maintainability Check
+
+on:
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  codepulse:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for git analysis
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install CodePulse
+        run: pip install code-pulse
+
+      - name: Install optional tools
+        run: |
+          npm install -g jscpd
+          pip install semgrep
+        continue-on-error: true
+
+      - name: Run CodePulse
+        id: codepulse
+        run: |
+          code-pulse . --output codepulse-report.md --verbose
+          SCORE=$(code-pulse . 2>/dev/null | grep "CodePulse Score" | awk '{print $NF}')
+          echo "score=$SCORE" >> $GITHUB_OUTPUT
+
+      - name: Check threshold
+        env:
+          THRESHOLD: ${{ vars.CODEPULSE_THRESHOLD || '60' }}
+        run: |
+          SCORE="${{ steps.codepulse.outputs.score }}"
+          if [ -z "$SCORE" ]; then
+            echo "Could not determine CodePulse score"
+            exit 1
+          fi
+          RESULT=$(python3 -c "print('pass' if float('$SCORE') >= float('$THRESHOLD') else 'fail')")
+          if [ "$RESULT" = "fail" ]; then
+            echo "CodePulse score $SCORE is below threshold $THRESHOLD"
+            exit 1
+          fi
+          echo "CodePulse score $SCORE meets threshold $THRESHOLD"
+
+      - name: Post PR comment
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            let report = '';
+            try {
+              report = fs.readFileSync('codepulse-report.md', 'utf8');
+            } catch (e) {
+              report = 'CodePulse report not available.';
+            }
+            const score = '${{ steps.codepulse.outputs.score }}' || 'N/A';
+            const body = `## CodePulse Maintainability Report\n\n**Score: ${score}**\n\n<details><summary>Full Report</summary>\n\n${report}\n\n</details>`;
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: body
+            });
