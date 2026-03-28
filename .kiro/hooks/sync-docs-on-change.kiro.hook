@@ -1,0 +1,22 @@
+{
+  "enabled": true,
+  "name": "Sync Docs on Source Change",
+  "description": "When Python source files, config files, or other project-relevant files are edited, asks the agent to review the changes and update the README.md or any docs to reflect the current state of the codebase.",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "**/*.py",
+      "pyproject.toml",
+      "**/*.yaml",
+      "**/*.yml",
+      "**/*.md"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "A source or config file was just edited. Review the change and determine if the README.md (or any docs in a /docs folder if one exists) needs to be updated to stay in sync. If so, make the minimal necessary documentation updates. Focus on things like: CLI usage, configuration options, architecture descriptions, feature lists, and dependency info. Do not update docs for trivial or internal-only changes."
+  },
+  "workspaceFolderName": "code-pulse",
+  "shortName": "sync-docs-on-change"
+}

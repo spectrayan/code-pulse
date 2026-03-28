@@ -1,0 +1,18 @@
+{
+  "enabled": true,
+  "name": "Code Quality Review on Save",
+  "description": "Analyzes modified source code files for potential improvements when changes are detected. Reviews for code smells, design pattern opportunities, best practices, readability, maintainability, and performance optimizations while preserving existing functionality.",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "src/**/*.py"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Analyze the modified file for potential code quality improvements. Focus on:\n\n1. Code smells (long methods, large classes, duplicated logic, dead code, overly complex conditionals)\n2. Design pattern opportunities (where applying a pattern would simplify or improve the code)\n3. Python best practices (idiomatic Python, proper use of dataclasses, type hints, error handling)\n4. Readability (naming clarity, function/method length, comments where needed)\n5. Maintainability (separation of concerns, coupling, cohesion, testability)\n6. Performance optimizations (unnecessary allocations, inefficient loops, missed generator opportunities)\n\nProvide concise, actionable suggestions. Do not suggest changes that would alter existing functionality. Prioritize the most impactful improvements."
+  },
+  "workspaceFolderName": "code-pulse",
+  "shortName": "code-quality-review"
+}
