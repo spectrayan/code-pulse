@@ -1,0 +1,19 @@
+## AI Insights
+
+Analyzed {{ ai_data.total_files }} files with LLM (strategy: {{ ai_data.strategy }})
+{% if ai_data.total_suggestions %}
+- {{ ai_data.total_suggestions }} refactor suggestions across {{ ai_data.suggestion_file_count }} files
+{% endif %}
+{% if ai_data.total_violations %}
+- {{ ai_data.total_violations }} coding standards violations detected
+{% endif %}
+
+{% if ai_data.worst_files %}
+Files needing most attention:
+
+| File | AI Score |
+|------|----------|
+{% for fp, sc in ai_data.worst_files %}
+| {{ fp.split("/")[-1] if "/" in fp else fp }} | {{ sc | fmt_score }} |
+{% endfor %}
+{% endif %}

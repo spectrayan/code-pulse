@@ -1,0 +1,13 @@
+# Per-File Scores (Page {{ page_num }}/{{ total_pages }})
+
+[← Back to Index](index.md)
+
+| File | Score | Tags | Suggestions |
+|------|-------|------|-------------|
+{% for fpath, fscore, tag_str, sugg_str, short in file_rows %}
+| {{ short }} | {{ fscore | fmt_score }} | {{ tag_str }} | {{ sugg_str }} |
+{% endfor %}
+
+{% if nav %}
+{{ nav }}
+{% endif %}

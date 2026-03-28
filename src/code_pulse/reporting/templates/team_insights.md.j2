@@ -1,0 +1,7 @@
+# Team Insights
+
+| Author | Files | Avg Score | Hotspots |
+|--------|-------|-----------|----------|
+{% for author in authors %}
+| {{ author.author }} | {{ author.file_count }} | {{ author.average_score | fmt_score }} | {{ author.hotspot_count }} |
+{% endfor %}

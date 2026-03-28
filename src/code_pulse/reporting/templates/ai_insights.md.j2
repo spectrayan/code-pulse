@@ -1,0 +1,34 @@
+# AI Insights Report
+
+[← Back to Index](index.md)
+
+{% if details %}
+## Per-File AI Scores by Provider
+
+{% for fp in details.keys() | sort %}
+{% set provider_results = details[fp] %}
+{% set short = fp.split("/")[-1] if "/" in fp else fp %}
+### {{ short }}
+
+| Provider | Readability | Architecture | Design Smells | Standards | Overall |
+|----------|------------|--------------|---------------|-----------|---------|
+{% for pr in provider_results %}
+| {{ pr.provider }} | {{ pr.readability_score | fmt_int }} | {{ pr.architecture_score | fmt_int }} | {{ pr.design_smell_score | fmt_int }} | {{ pr.standards_compliance_score | fmt_int }} | {{ pr.overall_score | fmt_int }} |
+{% endfor %}
+
+{% endfor %}
+{% endif %}
+
+{% if suggestions %}
+## Refactor Suggestions
+
+{% for fp in suggestions.keys() | sort %}
+{% set short = fp.split("/")[-1] if "/" in fp else fp %}
+### {{ short }}
+
+{% for sugg in suggestions[fp] %}
+{{ loop.index }}. {{ sugg }}
+{% endfor %}
+
+{% endfor %}
+{% endif %}

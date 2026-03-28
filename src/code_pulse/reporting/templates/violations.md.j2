@@ -1,0 +1,7 @@
+# Coding Standards Violations
+
+| Standard | File | Description | Lines |
+|----------|------|-------------|-------|
+{% for v in violations %}
+| {{ v.standard_name }} | {{ v.file_path }} | {{ v.description }} | {{ v.line_range or "-" }} |
+{% endfor %}

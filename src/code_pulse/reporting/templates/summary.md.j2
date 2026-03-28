@@ -1,0 +1,87 @@
+# CodePulse Report
+
+## Summary
+
+| Metric | Value |
+|--------|-------|
+| Score | {{ score.final_score | fmt_score }} |
+| Tier | {{ score.tier }} |
+| Recommendation | {{ score.recommendation }} |
+| Total Files | {{ total_files }} |
+| Excellent | {{ buckets.excellent }} |
+| Good | {{ buckets.good }} |
+| Poor | {{ buckets.poor }} |
+| Critical | {{ buckets.critical }} |
+
+{% if dims %}
+## Dimension Breakdown
+
+```mermaid
+xychart-beta
+    title "Dimension Scores"
+    x-axis [{{ dims.keys() | join_quoted }}]
+    y-axis "Score" 0 --> 100
+    bar [{{ dims.values() | join_scores }}]
+```
+{% else %}
+## Dimension Breakdown
+
+No dimension data available.
+{% endif %}
+
+{% if per_file %}
+## Score Distribution
+
+```mermaid
+pie title Score Distribution
+{% for tier, count in buckets.items() %}
+{% if count > 0 %}
+    "{{ tier }}" : {{ count }}
+{% endif %}
+{% endfor %}
+```
+{% else %}
+## Score Distribution
+
+No per-file data available.
+{% endif %}
+
+{% if trend %}
+## Trend Analysis
+
+Direction: **{{ trend.direction }}**
+
+{% if trend.entries %}
+| Timestamp | Score | Tier |
+|-----------|-------|------|
+{% for entry in trend.entries %}
+| {{ entry.timestamp }} | {{ entry.score | fmt_score }} | {{ entry.tier }} |
+{% endfor %}
+{% endif %}
+{% endif %}
+
+{% if cost %}
+## Cost-to-Fix Estimate
+
+| Metric | Value |
+|--------|-------|
+| Current Tier | {{ cost.current_tier }} |
+| Target Tier | {{ cost.target_tier }} |
+| Estimated Person-Days | {{ cost.estimated_person_days | fmt_score }} |
+{% endif %}
+
+{% if per_language_scores %}
+## Per-Language Breakdowns
+
+| Language | Score |
+|----------|-------|
+{% for lang, lang_score in per_language_scores | dictsort %}
+| {{ lang }} | {{ lang_score | fmt_score }} |
+{% endfor %}
+{% endif %}
+
+{% if ownership_count %}
+## Team Overview
+
+Total contributors: {{ ownership_count }}
+{% endif %}

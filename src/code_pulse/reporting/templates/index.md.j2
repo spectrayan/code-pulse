@@ -1,0 +1,27 @@
+{% include "summary.md.j2" %}
+
+{% if file_page_links %}
+## Detailed File Reports
+
+{% for link in file_page_links %}
+- {{ link }}
+{% endfor %}
+{% endif %}
+
+{% if violations_count %}
+## Violations
+
+{{ violations_count }} coding standards violations found. [View details](violations.md)
+{% endif %}
+
+{% if ai_data %}
+{% include "ai_summary.md.j2" %}
+
+[View full AI insights →](ai-insights.md)
+{% endif %}
+
+{% if ownership_count %}
+## Team Insights
+
+{{ ownership_count }} contributors. [View details](team-insights.md)
+{% endif %}
