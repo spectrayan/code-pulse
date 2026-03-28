@@ -1,0 +1,139 @@
+# CodePulse Default Configuration
+# Copy this file and customize for your project.
+
+# --- Project settings ---
+project:
+  # Default repo to analyze (overridden by CLI arg; "." = current directory)
+  repo_path: "."
+  # Display name for reports (optional)
+  name: "Code Pulse"
+  # Restrict analysis to specific languages (empty = all supported)
+  # languages: ["python", "java", "javascript", "typescript"]
+  # Additional directories to exclude from analysis (on top of defaults like node_modules, .git, build, dist)
+  exclude_dirs:
+    - "generated"
+    - "target"
+    - ".gradle"
+  # Regex patterns to exclude files (matched against relative path)
+  exclude_patterns:
+    - ".*Impl\\.java$"           # generated mapper implementations
+    - ".*/test/.*"               # test files
+    - ".*\\.spec\\.ts$"          # TypeScript test specs
+    - ".*\\.test\\.js$"          # JavaScript test files
+    - ".*__generated__.*"        # any generated code
+    - ".*\\.min\\.js$"            # minified JS
+    - "*.md"
+
+# --- Coding standards ---
+# Top-level config for coding standards used by the Agentic Analyzer.
+# Modes: system, predefined, custom, combined
+coding_standards:
+  mode: "combined"
+  system: true
+  predefined:
+    - "solid-principles"
+    - "clean-code"
+  # Custom standards directories (repo-level, org-level, or user-level)
+  # Each path can contain .md or .txt files with coding standards.
+  custom_paths: []
+    # - "./coding-standards/"           # repo-level standards
+    # - "~/org-standards/"              # org-level standards
+    # - "/shared/team-standards/"       # team-level standards
+
+# --- Analyzers ---
+analyzers:
+  lizard:
+    enabled: true
+    weight: 0.25
+    settings: {}
+
+  jscpd:
+    enabled: true
+    weight: 0.15
+    settings:
+      min_lines: 5
+      min_tokens: 50
+
+  semgrep:
+    enabled: false
+    weight: 0.10
+    settings:
+      rulesets:
+        - "auto"
+
+  sonarqube:
+    enabled: false
+    weight: 0.20
+    settings:
+      server_url: "https://sonar.example.com"
+      token: "${SONAR_TOKEN}"
+      project_key: "my-project"
+
+  git:
+    enabled: true
+    weight: 0.15
+    settings:
+      max_commits: 500
+
+  llm:
+    enabled: true
+    weight: 0.20
+    settings:
+      aggregation_strategy: "median"
+      max_files: 1          # max files to send to LLM (0 = unlimited)
+      batch_size: 3         # files per LLM call
+      providers:
+        - name: "google_genai"
+          model: "gemini-3-flash-preview"
+          api_key: "${GEMINI_API_KEY}"
+          max_retries: 3
+          weight: 1.0
+        # Ollama (local, no API key needed — just have ollama running)
+        # - name: "ollama"
+        #   model: "llama3.1"
+        #   base_url: "http://localhost:11434"
+        #   max_retries: 2
+        #   weight: 1.0
+
+  dependency:
+    enabled: true
+    weight: 0.10
+    settings: {}
+
+  coverage:
+    enabled: true
+    weight: 0.15
+    settings:
+      # mode: "auto" | "execute" | "report" | "sonarqube"
+      # auto = try reports first, then sonarqube, then execute tests
+      mode: "auto"
+      # Custom test command (optional — auto-detects gradle/maven/pytest/npm)
+      # test_command: "pytest --cov --cov-report=json -q"
+      # Timeout for test execution in seconds
+      test_timeout: 300
+      # Explicit path to a coverage report file (optional)
+      # report_path: "build/reports/jacoco/test/jacocoTestReport.xml"
+      # SonarQube settings for pulling coverage (optional — reuses sonarqube analyzer config if not set)
+      # sonarqube_url: "https://sonar.example.com"
+      # sonarqube_token: "${SONAR_TOKEN}"
+      # sonarqube_project_key: "my-project"
+
+  ownership:
+    enabled: true
+    weight: 0.0
+    settings: {}
+
+# --- Output ---
+# Report configuration
+report:
+  # "summary" = high-level overview (single file, no per-file details)
+  # "detailed" = full report split into multiple files in a directory
+  level: "summary"
+  # Directory for report output (created automatically)
+  output_dir: "codepulse-report"
+  # Max files per detail page (only for detailed mode)
+  files_per_page: 100
+
+output_path: "codepulse-report.md"
+trend_store_path: ".codepulse-trend.jsonl"
+ci_threshold: 60.0
