@@ -151,4 +151,8 @@ CodePulse_Score = Σ(weight_i × normalized_score_i) / Σ(weight_i)
 
 ## License
 
-MIT
+This project is licensed under a modified MIT License - see the [LICENSE](LICENSE) file for details. Any updates, modifications, or reselling require credit or mention of **Spectrayan**.
+
+## Support
+
+For any questions, issues, or feedback, please contact us at [support@spectrayan.com](mailto:support@spectrayan.com).
