@@ -28,13 +28,29 @@ project:
 # Top-level config for coding standards used by the Agentic Analyzer.
 # Modes: system, predefined, custom, combined
 coding_standards:
+  # combined = system + predefined + custom
   mode: "combined"
+  # Include core system standards (error handling, security, etc.)
   system: true
+  # Explicitly define which predefined standards to apply
   predefined:
     - "solid-principles"
     - "clean-code"
-  # Custom standards directories (repo-level, org-level, or user-level)
-  # Each path can contain .md or .txt files with coding standards.
+    - "owasp-secure-coding"
+    - "design-patterns"
+    - "domain-driven-design"
+    - "rest-api-design"
+    - "api-first-standards"
+    - "openapi-spec-standards"
+    - "java-standards"
+    - "spring-boot-standards"
+    - "python-standards"
+    - "typescript-standards"
+    - "angular-standards"
+  # Override specific predefined standards with custom files or content
+  predefined_overrides:
+    # "clean-code": "./my-project-clean-code.md"
+  # Custom standards directories
   custom_paths: []
     # - "./coding-standards/"           # repo-level standards
     # - "~/org-standards/"              # org-level standards

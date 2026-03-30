@@ -18,6 +18,9 @@ _SUPPORTED_EXTENSIONS = {".md", ".txt"}
 class CodingStandardsLoader:
     """Discovers and loads coding standards from configured sources."""
 
+    def __init__(self, predefined_overrides: Optional[Dict[str, str]] = None):
+        self.predefined_overrides = predefined_overrides or {}
+
     PREDEFINED_STANDARDS = {
         "solid-principles",
         "clean-code",
@@ -25,6 +28,21 @@ class CodingStandardsLoader:
         "google-style-python",
         "google-style-java",
         "airbnb-style-javascript",
+        "design-patterns",
+        "hexagonal-architecture",
+        "domain-driven-design",
+        "microservices-architecture",
+        "rest-api-design",
+        "testing-best-practices",
+        "cloud-native-devops",
+        "java-standards",
+        "spring-boot-standards",
+        "api-first-standards",
+        "openapi-spec-standards",
+        "generator-standards",
+        "python-standards",
+        "angular-standards",
+        "typescript-standards",
     }
 
     # --- public API ---------------------------------------------------
@@ -113,9 +131,30 @@ class CodingStandardsLoader:
         return self._load_dir(_SYSTEM_DIR, source="system")
 
     def _load_predefined_standards(self, names: List[str]) -> List[CodingStandard]:
-        """Load named industry-standard rulesets from the bundled predefined/ dir."""
+        """Load named industry-standard rulesets from the bundled predefined/ dir or overrides."""
         standards: List[CodingStandard] = []
         for name in names:
+            # Check for overrides first
+            if name in self.predefined_overrides:
+                override = self.predefined_overrides[name]
+                # If override is a path that exists, load it
+                if override.endswith(tuple(_SUPPORTED_EXTENSIONS)) and Path(override).is_file():
+                    std = self._read_file(Path(override), source="predefined_override")
+                    if std is not None:
+                        # Ensure name matches requested name even if filename differs
+                        std.name = name
+                        standards.append(std)
+                    continue
+                else:
+                    # Treat as raw content
+                    standards.append(CodingStandard(
+                        name=name,
+                        content=override,
+                        languages=_infer_languages(name),
+                        source="predefined_override"
+                    ))
+                    continue
+
             if name not in self.PREDEFINED_STANDARDS:
                 logger.warning("Unknown predefined standard '%s', skipping", name)
                 continue

@@ -167,11 +167,14 @@ class AgenticAnalyzer(Analyzer):
             providers: list of LLM provider configs
         """
         # --- Load coding standards ---
-        loader = CodingStandardsLoader()
         cs_config = settings.get("_coding_standards_config")
         if cs_config is not None:
+            loader = CodingStandardsLoader(
+                predefined_overrides=getattr(cs_config, "predefined_overrides", {})
+            )
             all_standards = loader.load(standards_config=cs_config)
         else:
+            loader = CodingStandardsLoader()
             all_standards = loader.load(settings)
 
         # --- Discover files ---

@@ -98,6 +98,9 @@ def _make_analyzer_node(analyzer, config: Config, registry: AnalyzerRegistry):
     # Inject top-level coding_standards config into agentic analyzer settings
     if analyzer.name() in ("agentic", "llm"):
         settings["_coding_standards_config"] = config.coding_standards
+        # Also pass overrides if they exist in config.coding_standards
+        if hasattr(config.coding_standards, "predefined_overrides"):
+            settings["predefined_overrides"] = config.coding_standards.predefined_overrides
 
     def _node(state: AnalysisState) -> Dict[str, Any]:
         repo_path = Path(state["repo_path"])

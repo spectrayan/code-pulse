@@ -12,6 +12,7 @@ class CodingStandardsConfig:
     custom_paths: List[str] = field(default_factory=list)  # repo, org, or user standards dirs
     predefined: List[str] = field(default_factory=list)  # e.g. ["solid-principles", "clean-code"]
     system: bool = True  # include built-in CodePulse standards
+    predefined_overrides: Dict[str, str] = field(default_factory=dict)  # map of name -> path or content
 
 
 @dataclass

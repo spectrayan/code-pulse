@@ -21,3 +21,38 @@ These are the built-in system standards used by CodePulse for semantic code eval
 - Cyclomatic complexity per function: target ≤ 10, flag > 15
 - Cognitive complexity: prefer flat, linear control flow
 - Avoid functions with more than 5 parameters
+
+## Error Handling
+- Use exceptions instead of return codes; provide meaningful context in error messages
+- Do not catch generic exceptions without specific handling logic
+- Ensure resources (files, sockets, database connections) are always closed (e.g., using `with` or `try-finally`)
+
+## Resource Management
+- Follow RAII (Resource Acquisition Is Initialization) or language-equivalent resource management patterns
+- Avoid memory leaks by ensuring all allocated resources are properly deallocated or managed by GC
+- Be mindful of expensive resource creation; use pooling where appropriate
+
+## Security
+- Validate and sanitize all external inputs (e.g., user input, API responses, files)
+- Avoid hardcoding secrets, API keys, or sensitive credentials; use environment variables or secret managers
+- Follow the principle of least privilege for application permissions and access controls
+
+## Concurrency
+- Ensure thread safety when working with shared state or mutable data structures
+- Use appropriate synchronization primitives (locks, semaphores, atomic operations) sparingly to avoid deadlocks
+- Prefer immutable data structures and message-passing patterns over shared mutable state
+
+## Performance and Scalability
+- Avoid premature optimization; focus on readability first, then optimize identified bottlenecks
+- Be mindful of time and space complexity, especially in core algorithms or data processing paths
+- Design for scalability: ensure components can handle increased load without architectural changes
+
+## Observability
+- Include structured logging with appropriate levels (INFO, WARN, ERROR, DEBUG) and relevant context
+- Instrument critical paths with metrics (e.g., latency, throughput, error rates) for monitoring
+- Use unique trace IDs to follow requests across distributed system components
+
+## Documentation
+- Document complex logic, public APIs, and architectural decisions using appropriate formats (e.g., Docstrings, READMEs)
+- Keep documentation up-to-date with code changes; avoid stale or misleading comments
+- Use diagrams (e.g., Mermaid, UML) to explain complex workflows or system structures

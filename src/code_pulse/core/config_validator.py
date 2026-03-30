@@ -84,8 +84,16 @@ class ConfigValidator:
         if not isinstance(system, bool):
             raise ConfigError("coding_standards.system", "bool")
 
+        predefined_overrides = raw.get("predefined_overrides", {})
+        if not isinstance(predefined_overrides, dict):
+            raise ConfigError("coding_standards.predefined_overrides", "dict (YAML mapping)")
+        for k, v in predefined_overrides.items():
+            if not isinstance(k, str) or not isinstance(v, str):
+                raise ConfigError("coding_standards.predefined_overrides", "dict of str -> str")
+
         return CodingStandardsConfig(
-            mode=mode, custom_paths=custom_paths, predefined=predefined, system=system
+            mode=mode, custom_paths=custom_paths, predefined=predefined,
+            system=system, predefined_overrides=predefined_overrides
         )
 
     @staticmethod
