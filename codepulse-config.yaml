@@ -48,7 +48,7 @@ coding_standards:
     - "typescript-standards"
     - "angular-standards"
   # Override specific predefined standards with custom files or content
-  predefined_overrides:
+  predefined_overrides: {}
     # "clean-code": "./my-project-clean-code.md"
   # Custom standards directories
   custom_paths: []
@@ -99,16 +99,17 @@ analyzers:
       max_files: 1          # max files to send to LLM (0 = unlimited)
       batch_size: 3         # files per LLM call
       providers:
-        - name: "google_genai"
-          model: "gemini-3-flash-preview"
-          api_key: "${GEMINI_API_KEY}"
-          max_retries: 3
-          weight: 1.0
         # Ollama (local, no API key needed — just have ollama running)
-        # - name: "ollama"
-        #   model: "llama3.1"
-        #   base_url: "http://localhost:11434"
-        #   max_retries: 2
+        - name: "ollama"
+          model: "llama3.1"
+          base_url: "http://localhost:11434"
+          max_retries: 2
+          weight: 1.0
+        # Google GenAI (can be enabled by setting GEMINI_API_KEY)
+        # - name: "google_genai"
+        #   model: "gemini-3-flash-preview"
+        #   api_key: "${GEMINI_API_KEY}"
+        #   max_retries: 3
         #   weight: 1.0
 
   dependency:

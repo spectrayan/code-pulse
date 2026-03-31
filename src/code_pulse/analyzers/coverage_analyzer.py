@@ -150,8 +150,8 @@ _AUTO_DETECT_COMMANDS: List[Dict[str, Any]] = [
     # Java / Maven
     {"marker": "pom.xml", "cmd": ["mvn", "test", "-q"], "report_glob": "**/jacoco.xml"},
     # Python / pytest
-    {"marker": "pyproject.toml", "cmd": ["pytest", "--cov", "--cov-report=json", "-q"], "report_glob": "**/coverage.json"},
-    {"marker": "setup.py", "cmd": ["pytest", "--cov", "--cov-report=json", "-q"], "report_glob": "**/coverage.json"},
+    {"marker": "pyproject.toml", "cmd": ["pytest", "-q"], "report_glob": "**/coverage.json"},
+    {"marker": "setup.py", "cmd": ["pytest", "-q"], "report_glob": "**/coverage.json"},
     # JavaScript / npm
     {"marker": "package.json", "cmd": ["npm", "test", "--", "--coverage"], "report_glob": "**/lcov.info"},
 ]

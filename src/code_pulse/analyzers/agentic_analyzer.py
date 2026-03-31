@@ -2,6 +2,7 @@
 
 import json
 import logging
+import re
 import statistics
 import time
 from pathlib import Path
@@ -40,6 +41,7 @@ For EACH file, respond with a JSON array (one object per file). Each object must
 }}
 
 Respond with ONLY the JSON array (no markdown fencing, no extra text).
+If you cannot evaluate the file, still return the JSON object with scores set to 50 and a violation explaining why.
 Score meanings: 0 = worst quality, 100 = best quality.
 """
 
@@ -115,23 +117,93 @@ def _parse_llm_response(text: str) -> Optional[List[Dict[str, Any]]]:
     """Parse the JSON response from an LLM. Returns a list of per-file result dicts.
 
     Handles both a JSON array and a single JSON object (wraps in list).
-    Tolerates markdown fencing.
+    Tolerates markdown fencing and extra conversational text.
+    Ensures that returned items are dictionaries.
     """
     cleaned = text.strip()
-    if cleaned.startswith("```"):
-        lines = cleaned.split("\n")
-        lines = [l for l in lines if not l.strip().startswith("```")]
-        cleaned = "\n".join(lines).strip()
+
+    def _validate_parsed(data: Any) -> Optional[List[Dict[str, Any]]]:
+        if isinstance(data, dict):
+            return [data]
+        if isinstance(data, list):
+            # Only keep dicts to avoid 'int' object has no attribute 'get' errors later
+            valid = [item for item in data if isinstance(item, dict)]
+            return valid if valid else None
+        return None
+
+    # 1. Try direct JSON parsing first
     try:
         parsed = json.loads(cleaned)
-        if isinstance(parsed, list):
-            return parsed
-        if isinstance(parsed, dict):
-            return [parsed]
-        return None
+        validated = _validate_parsed(parsed)
+        if validated:
+            return validated
     except json.JSONDecodeError:
-        logger.warning("Failed to parse LLM response as JSON: %.200s", cleaned)
-        return None
+        pass
+
+    # 2. Try to find JSON inside markdown blocks
+    # We look for ```json ... ``` or just ``` ... ```
+    md_json_match = re.search(r"```(?:json)?\s*([\s\S]*?)\s*```", cleaned)
+    if md_json_match:
+        try:
+            content = md_json_match.group(1).strip()
+            parsed = json.loads(content)
+            validated = _validate_parsed(parsed)
+            if validated:
+                return validated
+        except json.JSONDecodeError:
+            pass
+
+    # 3. Fallback: Try to find anything that looks like a JSON array or object
+    # This is more aggressive and might catch JSON even if surrounded by text.
+    # We look for the first '[' and last ']' OR first '{' and last '}'
+    # greedily to capture the outermost structure.
+    array_match = re.search(r"(\[[\s\S]*\])", cleaned)
+    if array_match:
+        content = array_match.group(1)
+        # Try to find the last ']' from the end to be sure we get the full array if there's trailing text
+        # re.search with [\s\S]* is greedy by default, so it should already find the last one.
+        try:
+            parsed = json.loads(content)
+            validated = _validate_parsed(parsed)
+            if validated:
+                return validated
+        except json.JSONDecodeError:
+            # If greedy failed, try non-greedy and step by step if needed?
+            # Actually, if greedy failed it might be because of extra text after the last ]
+            # that was somehow captured or nested.
+            pass
+
+    object_match = re.search(r"(\{[\s\S]*\})", cleaned)
+    if object_match:
+        try:
+            parsed = json.loads(object_match.group(1))
+            validated = _validate_parsed(parsed)
+            if validated:
+                return validated
+        except json.JSONDecodeError:
+            pass
+
+    # 4. Final effort: Try to recover if it's a list of items that look like JSON but are comma-separated without outer brackets
+    # This sometimes happens if the LLM starts with [{...}, {...}] but gets cut off or omits the brackets.
+    if "{" in cleaned and "}" in cleaned:
+        try:
+            # Try to find all objects
+            potential_objects = re.findall(r"(\{[\s\S]*?\})", cleaned)
+            parsed_objects = []
+            for obj_str in potential_objects:
+                try:
+                    obj = json.loads(obj_str)
+                    if isinstance(obj, dict):
+                        parsed_objects.append(obj)
+                except json.JSONDecodeError:
+                    continue
+            if parsed_objects:
+                return parsed_objects
+        except Exception:
+            pass
+
+    logger.warning("Failed to parse LLM response as JSON or it was not a dictionary: %.500s", cleaned)
+    return None
 
 
 def _clamp_score(value: Any) -> float:
@@ -283,6 +355,9 @@ class AgenticAnalyzer(Analyzer):
 
                 # Group results by file path
                 for result in llm_results:
+                    if not isinstance(result, dict):
+                        logger.warning("Skipping non-dictionary LLM result: %s", result)
+                        continue
                     fp = result.get("file_path", "")
                     if fp:
                         agg = self._aggregate_scores([result], strategy)
@@ -439,6 +514,7 @@ class AgenticAnalyzer(Analyzer):
                 files_block=files_block,
             )
 
+            logger.info("Calling LLM provider '%s' (batch size: %d)", provider_name, len(files))
             parsed_list = None
             last_error = None
             for attempt in range(max_retries):
@@ -452,12 +528,20 @@ class AgenticAnalyzer(Analyzer):
                         )
                     else:
                         response_text = str(raw_content)
+                    
+                    logger.debug("Raw LLM %s response (attempt %d):\n%s", provider_name, attempt + 1, response_text)
+                    
                     parsed_list = _parse_llm_response(response_text)
                     if parsed_list is not None:
+                        logger.info("Successfully parsed response from LLM '%s'", provider_name)
                         break
+                    
+                    # If parsing failed, we might want to see more of the response even if not in debug mode
+                    # but only if it's the last attempt or if we want to be noisy.
+                    # Given the user's request, let's log a snippet at WARNING level.
                     logger.warning(
-                        "LLM %s returned unparseable response (attempt %d)",
-                        provider_name, attempt + 1,
+                        "LLM %s returned unparseable response (attempt %d). Snippet: %.500s",
+                        provider_name, attempt + 1, response_text
                     )
                 except Exception as exc:
                     last_error = exc
