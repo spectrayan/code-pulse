@@ -1,5 +1,25 @@
 {% include "summary.md.j2" %}
 
+{% if prompt_security %}
+## 🛡️ Prompt Security Scan
+
+| Severity | Count |
+|----------|-------|
+{% if prompt_security.severity_summary.critical %}| 🔴 Critical | {{ prompt_security.severity_summary.critical }} |
+{% endif %}
+{% if prompt_security.severity_summary.high %}| 🟠 High | {{ prompt_security.severity_summary.high }} |
+{% endif %}
+{% if prompt_security.severity_summary.medium %}| 🟡 Medium | {{ prompt_security.severity_summary.medium }} |
+{% endif %}
+{% if prompt_security.severity_summary.low %}| 🔵 Low | {{ prompt_security.severity_summary.low }} |
+{% endif %}
+| **Total** | **{{ prompt_security.total_threats }}** |
+
+Security Score: **{{ prompt_security.score | fmt_score }}** / 100 — Files scanned: {{ prompt_security.files_scanned }}
+
+[View full security report →](prompt-security.md)
+{% endif %}
+
 {% if file_page_links %}
 ## Detailed File Reports
 

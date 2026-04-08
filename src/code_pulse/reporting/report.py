@@ -116,6 +116,24 @@ def _get_ai_insights(results: List[AnalyzerResult]) -> Optional[Dict[str, Any]]:
     return None
 
 
+def _get_prompt_security_data(results: List[AnalyzerResult]) -> Optional[Dict[str, Any]]:
+    """Extract prompt security scan data from prompt_scanner results."""
+    for r in results:
+        if r.analyzer_name == "prompt_scanner":
+            total = r.details.get("total_threats", 0)
+            if total == 0 and not r.details.get("threats"):
+                return None
+            return {
+                "total_threats": total,
+                "severity_summary": r.details.get("severity_summary", {}),
+                "category_summary": r.details.get("category_summary", {}),
+                "threats": r.details.get("threats", []),
+                "files_scanned": r.details.get("files_scanned", 0),
+                "score": r.normalized_score,
+            }
+    return None
+
+
 def _ai_insights_data(results: List[AnalyzerResult]) -> Optional[Dict[str, Any]]:
     """Structured AI insights data for the index/summary template."""
     data = _get_ai_insights(results)
@@ -167,6 +185,7 @@ def _build_summary_context(ctx: ReportContext) -> Dict[str, Any]:
         "cost": ctx.cost,
         "per_language_scores": ctx.per_language_scores,
         "ai_data": _ai_insights_data(ctx.results),
+        "prompt_security": _get_prompt_security_data(ctx.results),
         "ownership_count": len(ctx.ownership.authors) if ctx.ownership and ctx.ownership.authors else 0,
     }
 
@@ -243,6 +262,8 @@ class ReportGenerator:
             (out_dir / "index.md").write_text(content, encoding="utf-8")
             # Still write AI insights even in summary mode
             ReportGenerator._write_ai_insights(context, out_dir)
+            # Still write prompt security even in summary mode
+            ReportGenerator._write_prompt_security(context, out_dir)
             return str(out_dir)
 
         # --- Detailed mode: multi-file ---
@@ -283,6 +304,9 @@ class ReportGenerator:
         # AI insights page
         ReportGenerator._write_ai_insights(context, out_dir)
 
+        # Prompt security page
+        ReportGenerator._write_prompt_security(context, out_dir)
+
         return str(out_dir)
 
     @staticmethod
@@ -299,6 +323,15 @@ class ReportGenerator:
             details=details, suggestions=suggestions
         )
         (out_dir / "ai-insights.md").write_text(ai_content, encoding="utf-8")
+
+    @staticmethod
+    def _write_prompt_security(context: ReportContext, out_dir: Path) -> None:
+        """Write the prompt security scan page if data is available."""
+        data = _get_prompt_security_data(context.results)
+        if not data:
+            return
+        security_content = _ENV.get_template("prompt_security.md.j2").render(**data)
+        (out_dir / "prompt-security.md").write_text(security_content, encoding="utf-8")
 
     @staticmethod
     def _write_file_pages(ctx: ReportContext, cfg: ReportConfig, out_dir: Path) -> None:

@@ -58,28 +58,52 @@ coding_standards:
 
 # --- Analyzers ---
 analyzers:
-  lizard:
+  prompt_scanner:
     enabled: true
     weight: 0.25
+    settings:
+      categories:
+        - "prompt_injection"
+        - "destructive_command"
+        - "data_exfiltration"
+        - "credential_exposure"
+        - "code_execution"
+        - "privilege_escalation"
+        - "unsafe_network"
+        - "sensitive_data"
+      min_severity: "low"
+      extra_extensions:
+        - ".yaml"
+        - ".yml"
+        - ".json"
+        - ".toml"
+        - ".env"
+        - ".txt"
+        - ".md"
+        - ".prompt"
+
+  lizard:
+    enabled: true
+    weight: 0.15
     settings: {}
 
   jscpd:
     enabled: true
-    weight: 0.15
+    weight: 0.10
     settings:
       min_lines: 5
       min_tokens: 50
 
   semgrep:
     enabled: false
-    weight: 0.10
+    weight: 0.08
     settings:
       rulesets:
         - "auto"
 
   sonarqube:
     enabled: false
-    weight: 0.20
+    weight: 0.10
     settings:
       server_url: "https://sonar.example.com"
       token: "${SONAR_TOKEN}"
@@ -87,13 +111,13 @@ analyzers:
 
   git:
     enabled: true
-    weight: 0.15
+    weight: 0.10
     settings:
       max_commits: 500
 
   llm:
     enabled: true
-    weight: 0.20
+    weight: 0.12
     settings:
       aggregation_strategy: "median"
       max_files: 1          # max files to send to LLM (0 = unlimited)
@@ -114,12 +138,12 @@ analyzers:
 
   dependency:
     enabled: true
-    weight: 0.10
+    weight: 0.05
     settings: {}
 
   coverage:
     enabled: true
-    weight: 0.15
+    weight: 0.10
     settings:
       # mode: "auto" | "execute" | "report" | "sonarqube"
       # auto = try reports first, then sonarqube, then execute tests

@@ -85,3 +85,20 @@ Direction: **{{ trend.direction }}**
 
 Total contributors: {{ ownership_count }}
 {% endif %}
+
+{% if prompt_security %}
+## 🛡️ Prompt Security Scan
+
+**{{ prompt_security.total_threats }}** threats detected across {{ prompt_security.files_scanned }} files — Security Score: **{{ prompt_security.score | fmt_score }}** / 100
+
+| Severity | Count |
+|----------|-------|
+{% if prompt_security.severity_summary.critical %}| 🔴 Critical | {{ prompt_security.severity_summary.critical }} |
+{% endif %}
+{% if prompt_security.severity_summary.high %}| 🟠 High | {{ prompt_security.severity_summary.high }} |
+{% endif %}
+{% if prompt_security.severity_summary.medium %}| 🟡 Medium | {{ prompt_security.severity_summary.medium }} |
+{% endif %}
+{% if prompt_security.severity_summary.low %}| 🔵 Low | {{ prompt_security.severity_summary.low }} |
+{% endif %}
+{% endif %}

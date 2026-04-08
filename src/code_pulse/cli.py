@@ -17,6 +17,7 @@ from code_pulse.analyzers.dependency_analyzer import DependencyAnalyzer
 from code_pulse.analyzers.ownership_analyzer import OwnershipAnalyzer
 from code_pulse.analyzers.agentic_analyzer import AgenticAnalyzer
 from code_pulse.analyzers.coverage_analyzer import CoverageAnalyzer
+from code_pulse.analyzers.prompt_scanner import PromptScanner
 from code_pulse.engine.workflow import build_workflow
 
 
@@ -108,6 +109,7 @@ def main() -> None:
     registry.register(OwnershipAnalyzer())
     registry.register(AgenticAnalyzer())
     registry.register(CoverageAnalyzer())
+    registry.register(PromptScanner())
 
     # 6. Build and invoke the LangGraph workflow
     graph = build_workflow(config, registry)

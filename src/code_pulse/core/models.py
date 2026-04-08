@@ -126,6 +126,19 @@ class StandardViolation:
     line_range: Optional[str] = None
 
 
+# Prompt Security Models
+@dataclass
+class PromptThreat:
+    """A single security threat detected by the prompt scanner."""
+    category: str          # e.g., "prompt_injection", "destructive_command"
+    severity: str          # "critical", "high", "medium", "low"
+    description: str       # human-readable explanation
+    matched_text: str      # the offending text snippet
+    file_path: str
+    line_number: Optional[int] = None
+    rule_id: str = ""      # e.g., "PS-INJ-001"
+
+
 # Report Context
 @dataclass
 class ReportContext:

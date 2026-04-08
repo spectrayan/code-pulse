@@ -157,6 +157,8 @@ class ConfigValidator:
             ConfigValidator._validate_git(settings)
         elif name in ("llm", "agentic"):
             ConfigValidator._validate_llm(settings)
+        elif name == "prompt_scanner":
+            ConfigValidator._validate_prompt_scanner(settings)
 
     @staticmethod
     def _validate_sonarqube(settings: Dict[str, Any]) -> None:
@@ -174,6 +176,46 @@ class ConfigValidator:
             raise ConfigError(
                 "analyzers.git.settings.max_commits", "int"
             )
+
+    @staticmethod
+    def _validate_prompt_scanner(settings: Dict[str, Any]) -> None:
+        prefix = "analyzers.prompt_scanner.settings"
+
+        categories = settings.get("categories")
+        if categories is not None:
+            if not isinstance(categories, list):
+                raise ConfigError(f"{prefix}.categories", "list")
+            valid_cats = {
+                "prompt_injection", "destructive_command", "data_exfiltration",
+                "credential_exposure", "code_execution", "privilege_escalation",
+                "unsafe_network", "sensitive_data",
+            }
+            for cat in categories:
+                if not isinstance(cat, str):
+                    raise ConfigError(f"{prefix}.categories", "list of str")
+                if cat not in valid_cats:
+                    raise ConfigError(
+                        f"{prefix}.categories",
+                        f"one of {sorted(valid_cats)}",
+                        f"got '{cat}'",
+                    )
+
+        min_sev = settings.get("min_severity")
+        if min_sev is not None:
+            if not isinstance(min_sev, str):
+                raise ConfigError(f"{prefix}.min_severity", "str")
+            valid_sevs = {"low", "medium", "high", "critical"}
+            if min_sev not in valid_sevs:
+                raise ConfigError(
+                    f"{prefix}.min_severity",
+                    f"one of {sorted(valid_sevs)}",
+                    f"got '{min_sev}'",
+                )
+
+        extra_ext = settings.get("extra_extensions")
+        if extra_ext is not None:
+            if not isinstance(extra_ext, list):
+                raise ConfigError(f"{prefix}.extra_extensions", "list")
 
     @staticmethod
     def _validate_llm(settings: Dict[str, Any]) -> None:

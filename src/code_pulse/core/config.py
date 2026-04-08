@@ -38,6 +38,7 @@ class ConfigLoader:
 
     # Analyzers that ship by default with equal weights
     _DEFAULT_ANALYZERS = [
+        "prompt_scanner",
         "lizard",
         "jscpd",
         "semgrep",

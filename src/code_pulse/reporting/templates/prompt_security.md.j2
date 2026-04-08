@@ -1,0 +1,41 @@
+# 🛡️ Prompt Security Scan
+
+## Threat Summary
+
+| Severity | Count |
+|----------|-------|
+{% if severity_summary.critical %}| 🔴 Critical | {{ severity_summary.critical }} |
+{% endif %}
+{% if severity_summary.high %}| 🟠 High | {{ severity_summary.high }} |
+{% endif %}
+{% if severity_summary.medium %}| 🟡 Medium | {{ severity_summary.medium }} |
+{% endif %}
+{% if severity_summary.low %}| 🔵 Low | {{ severity_summary.low }} |
+{% endif %}
+| **Total** | **{{ total_threats }}** |
+
+**Files scanned:** {{ files_scanned }}
+
+{% if category_summary %}
+## Category Breakdown
+
+| Category | Critical | High | Medium | Low | Total |
+|----------|----------|------|--------|-----|-------|
+{% for cat, counts in category_summary | dictsort %}
+| {{ cat | replace("_", " ") | title }} | {{ counts.critical }} | {{ counts.high }} | {{ counts.medium }} | {{ counts.low }} | {{ counts.total }} |
+{% endfor %}
+{% endif %}
+
+{% if threats %}
+## Detailed Findings
+
+{% for threat in threats %}
+### {{ threat.rule_id }}: {{ threat.description }}
+
+- **Category:** {{ threat.category | replace("_", " ") | title }}
+- **Severity:** {% if threat.severity == "critical" %}🔴{% elif threat.severity == "high" %}🟠{% elif threat.severity == "medium" %}🟡{% else %}🔵{% endif %} {{ threat.severity | upper }}
+- **File:** `{{ threat.file_path }}`{% if threat.line_number %} (line {{ threat.line_number }}){% endif %}
+- **Match:** `{{ threat.matched_text }}`
+
+{% endfor %}
+{% endif %}
